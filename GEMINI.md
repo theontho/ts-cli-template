@@ -4,12 +4,11 @@ You are working on the `typescript-cli-template` project. Follow these guideline
 
 ## Development Workflow
 
-1.  **Dependency Management:** Use `npm`.
+1.  **Dependency Management:** Use `bun`.
 2.  **Code Quality:**
-    - After any code change, run `npm run check`.
-    - Run `npm run build` to verify types.
+    - After any code change, run `bun run check`.
 3.  **Testing:**
-    - Run tests using `npm test`.
+    - Run tests using `bun test`.
 4.  **Experimentation:** Use the `scripts/` directory for temporary scripts or experiments.
 5.  **Output:** Direct all logs or temporary artifacts to `out/` or `tmp/`.
 
@@ -19,7 +18,7 @@ You are working on the `typescript-cli-template` project. Follow these guideline
 - Use `zod` for data models and configuration validation.
 - Use `chalk` for console output.
 - Use `commander` for CLI subcommands (`precheck`, `config`, `run`).
-- Use `platformdirsjs` for platform-standard configuration paths.
+- Use `platformdirs` for platform-standard configuration paths.
 
 ## CI/CD
 

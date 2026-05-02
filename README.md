@@ -1,43 +1,38 @@
-# TypeScript CLI Template
+# TypeScript CLI Template (Bun)
 
-A best-practice TypeScript CLI project template.
+A best-practice TypeScript CLI project template powered by [Bun](https://bun.sh/).
 
 ## Features
 
-- **TypeScript & ESM:** Modern TypeScript setup with native ESM support.
+- **Runtime:** [Bun](https://bun.sh/) for ultra-fast execution, native TypeScript support, and built-in testing.
 - **CLI Framework:** [Commander.js](https://github.com/tj/commander.js) for structured subcommands.
 - **Linting & Formatting:** [Biome](https://biomejs.dev/) for ultra-fast linting and formatting.
-- **Testing:** [Vitest](https://vitest.dev/) for fast unit and integration testing.
-- **Configuration:** Platform-standard config paths using `platformdirsjs` and `zod` for validation.
+- **Configuration:** Platform-standard config paths using `platformdirs` and `zod` for validation.
 - **Visuals:** Emoji-enhanced logging with `chalk` and timestamps.
-- **Global Installation:** Optimized for global installation via `npm install -g .`.
+- **Compilation:** Easy binary compilation using `bun build --compile`.
 
 ## Getting Started
 
 1.  **Clone the repository.**
 2.  **Install dependencies:**
     ```bash
-    npm install
+    bun install
     ```
-3.  **Build the project:**
+3.  **Run pre-check:**
     ```bash
-    npm run build
+    bun start precheck
     ```
-4.  **Run pre-check:**
+4.  **Initialize config:**
     ```bash
-    npm run dev -- precheck
+    bun start config init
     ```
-5.  **Initialize config:**
+5.  **Run the application:**
     ```bash
-    npm run dev -- config init
+    bun start run
     ```
-6.  **Run the application:**
+6.  **Run tests:**
     ```bash
-    npm run dev -- run
-    ```
-7.  **Run tests:**
-    ```bash
-    npm test
+    bun test
     ```
 
 ## Configuration
@@ -46,6 +41,6 @@ Configuration is stored in `~/.config/typescript-cli-template/config.json` (on m
 
 ## Development
 
-- **Linting:** `npm run lint`
-- **Formatting:** `npm run format`
-- **Type Checking:** `npm run build`
+- **Linting:** `bun run lint`
+- **Formatting:** `bun run format`
+- **Type Checking:** Handled natively by Bun's runtime and test runner.

@@ -1,21 +1,20 @@
 {
   "name": "typescript-cli-template",
   "version": "0.1.0",
+  "module": "src/cli.ts",
   "type": "module",
-  "description": "Best-practice TypeScript CLI project template",
-  "main": "dist/index.js",
+  "description": "Best-practice Bun-powered TypeScript CLI project template",
   "bin": {
-    "typescript-cli-template": "dist/cli.js"
+    "typescript-cli-template": "src/cli.ts"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/cli.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "start": "bun src/cli.ts",
+    "dev": "bun --watch src/cli.ts",
+    "test": "bun test",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "prepublishOnly": "npm run build"
+    "build": "bun build ./src/cli.ts --compile --outfile dist/typescript-cli-template"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -25,15 +24,11 @@
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^14.0.0",
-    "conf": "^13.0.0",
     "platformdirs": "^4.3.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.8",
-    "@types/node": "^22.0.0",
-    "tsx": "^4.7.1",
-    "typescript": "^5.4.0",
-    "vitest": "^2.0.0"
+    "@biomejs/biome": "^2.4.14",
+    "bun-types": "latest"
   }
 }

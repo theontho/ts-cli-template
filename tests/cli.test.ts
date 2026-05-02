@@ -1,14 +1,14 @@
-import { execSync } from 'node:child_process';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'bun:test';
+import { spawnSync } from 'node:child_process';
 
 describe('CLI', () => {
   it('should show help output', () => {
-    const output = execSync('node dist/cli.js --help').toString();
-    expect(output).toContain('Usage: typescript-cli-template');
+    const proc = spawnSync('bun', ['./src/cli.ts', '--help'], { encoding: 'utf8' });
+    expect(proc.stdout).toContain('Usage: typescript-cli-template');
   });
 
   it('should run precheck', () => {
-    const output = execSync('node dist/cli.js precheck').toString();
-    expect(output).toContain('Pre-check passed!');
+    const proc = spawnSync('bun', ['./src/cli.ts', 'precheck'], { encoding: 'utf8' });
+    expect(proc.stdout).toContain('Pre-check passed!');
   });
 });

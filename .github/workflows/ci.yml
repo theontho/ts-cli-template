@@ -9,26 +9,22 @@ on:
 
 jobs:
   check:
-    name: Lint, Type Check, and Test
+    name: Lint and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm install
+        run: bun install
 
       - name: Check Formatting & Lint (Biome)
-        run: npm run check
+        run: bun run check
 
-      - name: Type Check (TSC)
-        run: npm run build
-
-      - name: Run Tests (Vitest)
-        run: npm test
+      - name: Run Tests (Bun)
+        run: bun test

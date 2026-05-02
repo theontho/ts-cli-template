@@ -1,21 +1,17 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { Command } from 'commander';
+// Bun has built-in support for importing JSON
+import packageJson from '../package.json';
 import { getConfigPath, loadConfig, saveConfig } from './config.js';
 import { LogLevel, log, setLogLevel } from './logging.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
 
 const program = new Command();
 
 program
   .name('typescript-cli-template')
-  .description('Best-practice TypeScript CLI project template')
+  .description('Best-practice Bun-powered TypeScript CLI project template')
   .version(packageJson.version);
 
 program.option('--debug', 'enables debug logging');
@@ -25,16 +21,12 @@ program
   .description('Check environment and dependencies')
   .action(() => {
     console.log(chalk.blue('Running Pre-check...'));
-    let allPassed = true;
+    const allPassed = true;
 
-    if (process.version.startsWith('v')) {
-      const major = parseInt(process.version.slice(1).split('.')[0], 10);
-      if (major < 20) {
-        log.error(`Node.js 20+ required, found ${process.version}`);
-        allPassed = false;
-      } else {
-        log.info(`Node.js version ${process.version} OK`);
-      }
+    if (!process.versions.bun) {
+      log.warn('Running outside of Bun environment');
+    } else {
+      log.info(`Bun version ${process.versions.bun} OK`);
     }
 
     if (allPassed) {
@@ -79,7 +71,7 @@ program
 
     log.debug('Debug logging is enabled');
     log.info('Starting typescript-cli-template...');
-    console.log(chalk.green(`Hello, ${options.name} from TypeScript!`));
+    console.log(chalk.green(`Hello, ${options.name} from Bun!`));
     console.log(`Data directory: ${chalk.cyan(config.dataDir)}`);
   });
 

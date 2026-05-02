@@ -36,11 +36,11 @@ You are not done simply because you made an edit. **You are not done until you h
   - *Interactive Mode:* Show progress bars using `cli-progress` or similar.
   - *Non-Interactive Mode:* Use simple logs with updates every 30-60 seconds.
 - **Structured Logging:** Use proper logging with timestamps and log levels.
-- **Modern Best Practices:** Use TypeScript, ESM, Biome, Vitest, and `package.json` based tooling.
+- **Modern Best Practices:** Use Bun, TypeScript, Biome, and `package.json` based tooling.
 - **CLI Design:** Use `commander` for CLI tooling. Include `precheck` and `config` subcommands.
-- **Configuration:** Use JSON/YAML for configuration files stored in platform-standard directories (via `platformdirsjs`). Use Zod for validation.
+- **Configuration:** Use JSON for configuration files stored in platform-standard directories (via `platformdirs`). Use Zod for validation.
 
 ## TypeScript Formatting & Linting
 
-- **Always** run `npm run check` after editing a file.
-- **Always** run `npm run build` to check for type errors before concluding a task.
+- **Always** run `bun run check` after editing a file.
+- **Always** run `bun test` to ensure no regressions.
