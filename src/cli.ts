@@ -10,7 +10,7 @@ import { LogLevel, log, setLogLevel } from './logging.js';
 const program = new Command();
 
 program
-  .name('typescript-cli-template')
+  .name('ts-cli-template')
   .description('Best-practice Bun-powered TypeScript CLI project template')
   .version(packageJson.version);
 
@@ -70,7 +70,7 @@ program
     }
 
     log.debug('Debug logging is enabled');
-    log.info('Starting typescript-cli-template...');
+    log.info('Starting ts-cli-template...');
     console.log(chalk.green(`Hello, ${options.name} from Bun!`));
     console.log(`Data directory: ${chalk.cyan(config.dataDir)}`);
   });

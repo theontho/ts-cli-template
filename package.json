@@ -1,11 +1,11 @@
 {
-  "name": "typescript-cli-template",
+  "name": "ts-cli-template",
   "version": "0.1.0",
   "module": "src/cli.ts",
   "type": "module",
   "description": "Best-practice Bun-powered TypeScript CLI project template",
   "bin": {
-    "typescript-cli-template": "src/cli.ts"
+    "ts-cli-template": "src/cli.ts"
   },
   "scripts": {
     "start": "bun src/cli.ts",
@@ -14,7 +14,7 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "build": "bun build ./src/cli.ts --compile --outfile dist/typescript-cli-template"
+    "build": "bun build ./src/cli.ts --compile --outfile dist/ts-cli-template"
   },
   "engines": {
     "node": ">=20.0.0"

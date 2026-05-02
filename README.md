@@ -37,7 +37,7 @@ A best-practice TypeScript CLI project template powered by [Bun](https://bun.sh/
 
 ## Configuration
 
-Configuration is stored in `~/.config/typescript-cli-template/config.json` (on macOS/Linux).
+Configuration is stored in `~/.config/ts-cli-template/config.json` (on macOS/Linux).
 
 ## Development
 

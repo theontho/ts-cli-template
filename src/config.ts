@@ -5,7 +5,7 @@ import { platform } from 'node:process';
 import * as platformdirs from 'platformdirs';
 import { z } from 'zod';
 
-const APP_NAME = 'typescript-cli-template';
+const APP_NAME = 'ts-cli-template';
 
 export const ConfigSchema = z.object({
   logLevel: z.enum(['DEBUG', 'INFO', 'WARN', 'ERROR']).default('INFO'),
