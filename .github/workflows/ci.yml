@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Lint, Type Check, and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check Formatting & Lint (Biome)
+        run: npm run check
+
+      - name: Type Check (TSC)
+        run: npm run build
+
+      - name: Run Tests (Vitest)
+        run: npm test

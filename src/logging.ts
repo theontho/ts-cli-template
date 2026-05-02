@@ -1,0 +1,35 @@
+import chalk from 'chalk';
+
+export enum LogLevel {
+  DEBUG = 0,
+  INFO = 1,
+  WARN = 2,
+  ERROR = 3,
+}
+
+let currentLogLevel = LogLevel.INFO;
+
+export function setLogLevel(level: LogLevel): void {
+  currentLogLevel = level;
+}
+
+function getTimestamp(): string {
+  return new Date().toLocaleTimeString('en-GB', { hour12: false });
+}
+
+function formatLog(level: LogLevel, emoji: string, message: string, fileInfo?: string): void {
+  if (level < currentLogLevel) return;
+
+  const timestamp = getTimestamp();
+  const location = fileInfo ? ` ${fileInfo}` : '';
+  console.log(`[${timestamp}${location}] ${emoji} ${message}`);
+}
+
+export const log = {
+  debug: (message: string, fileInfo?: string) => formatLog(LogLevel.DEBUG, '🐞', message, fileInfo),
+  info: (message: string, fileInfo?: string) => formatLog(LogLevel.INFO, 'ℹ️ ', message, fileInfo),
+  warn: (message: string, fileInfo?: string) =>
+    formatLog(LogLevel.WARN, '⚠️ ', chalk.yellow(message), fileInfo),
+  error: (message: string, fileInfo?: string) =>
+    formatLog(LogLevel.ERROR, '❌', chalk.red(message), fileInfo),
+};
