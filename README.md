@@ -23,6 +23,10 @@ A best-practice TypeScript CLI project template powered by [Bun](https://bun.sh/
     bun start precheck
     ```
 4.  **Initialize config:**
+6.  **Register dev identity:**
+    ```bash
+    bun start dev-register
+    ```
     ```bash
     bun start config init
     ```

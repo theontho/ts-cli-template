@@ -44,3 +44,13 @@ You are not done simply because you made an edit. **You are not done until you h
 
 - **Always** run `bun run check` after editing a file.
 - **Always** run `bun test` to ensure no regressions.
+
+## Dev Identity Verification
+
+This project uses a `.dev_id` file (gitignored) to ensure commits are made with the correct identity.
+1. Run `bun start dev-register` to create your `.dev_id`.
+2. To enforce this, add the following to `.git/hooks/pre-commit` and `.git/hooks/pre-push`:
+   ```bash
+   #!/bin/bash
+   bun scripts/verify-dev.ts
+   ```
