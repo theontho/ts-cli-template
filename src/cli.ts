@@ -2,8 +2,6 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
 // Bun has built-in support for importing JSON
 import packageJson from '../package.json';
 import { getConfigPath, loadConfig, saveConfig } from './config.js';
@@ -59,27 +57,6 @@ configCmd
     const config = loadConfig();
     saveConfig(config);
     log.info(`Initialized config at ${path}`);
-  });
-
-program
-  .command('dev-register')
-  .description('Register your dev identity in .dev_id')
-  .action(() => {
-    const getGitConfig = (key: string) => {
-      const proc = spawnSync('git', ['config', key], { encoding: 'utf8' });
-      return proc.status === 0 ? proc.stdout.trim() : '';
-    };
-
-    const currentName = getGitConfig('user.name');
-    const currentEmail = getGitConfig('user.email');
-
-    console.log(`Current Git Identity: ${currentName} <${currentEmail}>`);
-    
-    // In a real CLI we would use a prompt library, but for this template simplicity:
-    console.log('Registering this identity in .dev_id...');
-    const content = `name=${currentName}\nemail=${currentEmail}\n`;
-    writeFileSync('.dev_id', content);
-    console.log(chalk.green('✅ Registered in .dev_id'));
   });
 
 program
