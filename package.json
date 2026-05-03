@@ -21,7 +21,8 @@
     "check:fix": "biome check --write .",
     "build": "bun build ./src/cli.ts --compile --outfile dist/ts-cli-template",
     "dev-register": "bun scripts/dev-register.ts",
-    "setup-hooks": "bun scripts/setup-hooks.ts"
+    "setup-hooks": "bun scripts/setup-hooks.ts",
+    "postinstall": "bun scripts/setup-hooks.ts --auto"
   },
   "author": "theontho",
   "license": "MIT",

@@ -29,8 +29,8 @@ A best-practice TypeScript CLI project template powered by [Bun](https://bun.sh/
 5.  **Setup Development Environment:**
     ```bash
     bun run dev-register   # Register your git identity
-    bun run setup-hooks    # Install Lefthook git hooks
     ```
+    Git hooks are installed automatically by `bun install`. Run `bun run setup-hooks` if you need to repair or reinstall them.
 6.  **Run the application:**
     ```bash
     bun start run
@@ -57,7 +57,7 @@ For tests or isolated runs, set `TS_CLI_TEMPLATE_CONFIG_DIR` to override the con
 - **Check (Lint + Format Validation):** `bun run check`
 - **Check and Fix:** `bun run check:fix`
 - **Type Checking:** `bun run typecheck`
-- **Git Hooks:** `bun run setup-hooks` installs hooks from `lefthook.yml`
+- **Git Hooks:** `bun install` automatically installs hooks from `lefthook.yml`; `bun run setup-hooks` reinstalls them manually.
 
 Lefthook verifies your registered Git identity and runs `bun run check` before commits. Before pushes it verifies identity, runs `bun run typecheck`, and runs `bun test`.
 
