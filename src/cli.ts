@@ -34,10 +34,11 @@ program
   .description('Check environment and dependencies')
   .action(() => {
     console.log(chalk.blue('Running Pre-check...'));
-    const allPassed = true;
+    let allPassed = true;
 
     if (!process.versions.bun) {
       log.warn('Running outside of Bun environment');
+      allPassed = false;
     } else {
       log.info(`Bun version ${process.versions.bun} OK`);
     }
@@ -83,13 +84,8 @@ program
   .action((options) => {
     const config = loadConfig();
     // Allow config to override default level if not specified on CLI
-    if (
-      !program.opts().debug &&
-      !program.opts().verbose &&
-      !program.opts().quiet &&
-      config.logLevel === 'DEBUG'
-    ) {
-      setLogLevel(LogLevel.DEBUG);
+    if (!program.opts().debug && !program.opts().verbose && !program.opts().quiet) {
+      setLogLevel(LogLevel[config.logLevel as keyof typeof LogLevel]);
     }
 
     log.debug('Debug logging is enabled');
@@ -101,11 +97,11 @@ program
 // Global error handling and signal handling
 process.on('SIGINT', () => {
   console.log(`\n${chalk.yellow('Interrupted by user')}`);
-  process.exit(0);
+  process.exit(130);
 });
 
 try {
-  program.parse(process.argv);
+  await program.parseAsync(process.argv);
 } catch (err) {
   log.error(err instanceof Error ? err.message : String(err));
   process.exit(1);

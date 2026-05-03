@@ -20,9 +20,11 @@ function verify() {
   const expected: Record<string, string> = {};
   const content = readFileSync(devIdPath, 'utf8');
   for (const line of content.split('\n')) {
-    if (line.includes('=')) {
-      const [k, v] = line.split('=');
-      expected[k.trim()] = v.trim();
+    const idx = line.indexOf('=');
+    if (idx !== -1) {
+      const k = line.slice(0, idx).trim();
+      const v = line.slice(idx + 1).trim();
+      expected[k] = v;
     }
   }
 
