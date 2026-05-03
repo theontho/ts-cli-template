@@ -2,7 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { type Identity, orderIdentities, parseGhAuthStatus } from '../scripts/dev-register';
-import { CONFIG_DIR_ENV, ConfigSchema, getConfigPath, loadConfig, saveConfig } from '../src/config';
+import {
+  CONFIG_DIR_ENV,
+  ConfigSchema,
+  getConfigDir,
+  getConfigPath,
+  loadConfig,
+  saveConfig,
+} from '../src/config';
 import { LogLevel, log, setLogLevel, setUseEmoji } from '../src/logging';
 
 describe('Configuration', () => {
@@ -39,6 +46,40 @@ describe('Configuration', () => {
 
     const loaded = loadConfig();
     expect(loaded).toEqual(config);
+  });
+
+  it('should overwrite an existing config file', () => {
+    saveConfig(
+      ConfigSchema.parse({
+        logLevel: 'DEBUG',
+        dataDir: '/tmp/old-data',
+      }),
+    );
+
+    const nextConfig = ConfigSchema.parse({
+      logLevel: 'WARN',
+      dataDir: '/tmp/new-data',
+    });
+    saveConfig(nextConfig);
+
+    expect(loadConfig()).toEqual(nextConfig);
+  });
+
+  it('should clean up temp config files when save fails', () => {
+    const configPath = getConfigPath();
+    mkdirSync(configPath, { recursive: true });
+
+    expect(() =>
+      saveConfig(
+        ConfigSchema.parse({
+          logLevel: 'INFO',
+          dataDir: '/tmp/test-data',
+        }),
+      ),
+    ).toThrow();
+
+    const leftovers = Array.from(new Bun.Glob('.config.*.tmp').scanSync(getConfigDir()));
+    expect(leftovers).toEqual([]);
   });
 
   it('should fail on invalid JSON in an existing config file', () => {

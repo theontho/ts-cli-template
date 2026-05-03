@@ -5,8 +5,8 @@ import chalk from 'chalk';
 
 const isAuto = process.argv.includes('--auto');
 
-function run(command: string, args: string[], required = true): string | null {
-  const proc = spawnSync(command, args, { encoding: 'utf8' });
+function run(command: string, args: string[], required = true, cwd?: string): string | null {
+  const proc = spawnSync(command, args, { cwd, encoding: 'utf8' });
   if (proc.status !== 0) {
     if (!required) return null;
     const detail = (proc.stderr || proc.stdout).trim();
@@ -41,7 +41,7 @@ function setupHooks() {
     throw new Error(`Missing Lefthook config at ${configPath}`);
   }
 
-  run('bun', ['x', 'lefthook', 'install']);
+  run('bun', ['x', 'lefthook', 'install'], true, repoRoot);
   if (!isAuto) {
     console.log(chalk.green('✅ Installed pre-commit and pre-push hooks via Lefthook'));
   }

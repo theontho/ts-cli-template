@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import * as platformdirs from 'platformdirs';
 import { z } from 'zod';
@@ -57,6 +57,19 @@ export function saveConfig(config: Config): void {
 
   const validated = ConfigSchema.parse(config);
   const tempPath = join(dir, `.config.${process.pid}.${Date.now()}.tmp`);
-  writeFileSync(tempPath, `${JSON.stringify(validated, null, 2)}\n`, { mode: 0o600 });
-  renameSync(tempPath, path);
+  try {
+    writeFileSync(tempPath, `${JSON.stringify(validated, null, 2)}\n`, { mode: 0o600 });
+    replaceFile(tempPath, path);
+  } catch (error) {
+    rmSync(tempPath, { force: true });
+    throw error;
+  }
+}
+
+function replaceFile(sourcePath: string, targetPath: string): void {
+  if (process.platform === 'win32') {
+    rmSync(targetPath, { force: true });
+  }
+
+  renameSync(sourcePath, targetPath);
 }

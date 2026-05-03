@@ -48,7 +48,7 @@ program
     }>();
     const verbosityFlags = [opts.debug, opts.verbose, opts.quiet].filter(Boolean);
     if (verbosityFlags.length > 1) {
-      throw new Error('Choose only one of --debug, --verbose, or --quiet.');
+      throw new Error('Choose only one of --debug, --verbose, or --quiet');
     }
 
     if (opts.debug) setLogLevel(LogLevel.DEBUG);
