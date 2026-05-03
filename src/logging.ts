@@ -8,9 +8,14 @@ export enum LogLevel {
 }
 
 let currentLogLevel = LogLevel.INFO;
+let useEmoji = process.stdout.isTTY;
 
 export function setLogLevel(level: LogLevel): void {
   currentLogLevel = level;
+}
+
+export function setUseEmoji(value: boolean): void {
+  useEmoji = value;
 }
 
 function getTimestamp(): string {
@@ -22,7 +27,8 @@ function formatLog(level: LogLevel, emoji: string, message: string, fileInfo?: s
 
   const timestamp = getTimestamp();
   const location = fileInfo ? ` ${fileInfo}` : '';
-  console.log(`[${timestamp}${location}] ${emoji} ${message}`);
+  const prefix = useEmoji ? `${emoji} ` : '';
+  console.log(`[${timestamp}${location}] ${prefix}${message}`);
 }
 
 export const log = {

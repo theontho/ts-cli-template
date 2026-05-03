@@ -90,7 +90,7 @@ async function register() {
     chalk.blue(`Choose an identity to register in .dev_id (1-${allIdentities.length}) [1]: `),
   );
 
-  for await (const line of (Bun.stdin as any).stream()) {
+  for await (const line of Bun.stdin.stream()) {
     const input = Buffer.from(line).toString().trim() || '1';
     const choice = parseInt(input, 10);
 

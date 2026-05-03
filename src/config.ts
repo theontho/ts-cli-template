@@ -1,7 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { platform } from 'node:process';
 import * as platformdirs from 'platformdirs';
 import { z } from 'zod';
 
@@ -9,19 +7,13 @@ const APP_NAME = 'ts-cli-template';
 
 export const ConfigSchema = z.object({
   logLevel: z.enum(['DEBUG', 'INFO', 'WARN', 'ERROR']).default('INFO'),
-  dataDir: z.string().default('data'),
+  dataDir: z.string().default(platformdirs.userDataDir(APP_NAME)),
   apiKey: z.string().optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
 
 export function getConfigDir(): string {
-  if (platform === 'darwin') {
-    const dotConfig = join(homedir(), '.config');
-    if (existsSync(dotConfig)) {
-      return join(dotConfig, APP_NAME);
-    }
-  }
   return platformdirs.userConfigDir(APP_NAME);
 }
 

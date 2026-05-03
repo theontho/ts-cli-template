@@ -48,4 +48,15 @@ Configuration is stored in `~/.config/ts-cli-template/config.json` (on macOS/Lin
 
 - **Linting:** `bun run lint`
 - **Formatting:** `bun run format`
+- **Check (Lint + Format + Fix):** `bun run check`
 - **Type Checking:** Handled natively by Bun's runtime and test runner.
+
+## Build
+
+Compile your CLI into a single, standalone executable:
+
+```bash
+bun run build
+```
+
+The output will be located in `dist/ts-cli-template`. This binary includes the Bun runtime, your code, and all dependencies.

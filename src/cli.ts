@@ -1,11 +1,12 @@
 #!/usr/bin/env bun
 
+import { existsSync } from 'node:fs';
 import chalk from 'chalk';
 import { Command } from 'commander';
 // Bun has built-in support for importing JSON
 import packageJson from '../package.json';
 import { getConfigPath, loadConfig, saveConfig } from './config.js';
-import { LogLevel, log, setLogLevel } from './logging.js';
+import { LogLevel, log, setLogLevel, setUseEmoji } from './logging.js';
 
 const program = new Command();
 
@@ -14,7 +15,19 @@ program
   .description('Best-practice Bun-powered TypeScript CLI project template')
   .version(packageJson.version);
 
-program.option('--debug', 'enables debug logging');
+program
+  .option('--debug', 'enables debug logging')
+  .option('--verbose', 'enables verbose logging')
+  .option('--quiet', 'suppress all output except errors')
+  .option('--no-emoji', 'disable emoji in output')
+  .hook('preAction', (thisCommand) => {
+    const opts = thisCommand.opts();
+    if (opts.debug) setLogLevel(LogLevel.DEBUG);
+    else if (opts.verbose) setLogLevel(LogLevel.INFO);
+    else if (opts.quiet) setLogLevel(LogLevel.ERROR);
+
+    if (opts.emoji === false) setUseEmoji(false);
+  });
 
 program
   .command('precheck')
@@ -52,8 +65,12 @@ configCmd
   .command('init')
   .description('Initialize default configuration')
   .option('--force', 'overwrite existing config')
-  .action((_options) => {
+  .action((options) => {
     const path = getConfigPath();
+    if (existsSync(path) && !options.force) {
+      log.warn(`Config already exists at ${path}. Use --force to overwrite.`);
+      return;
+    }
     const config = loadConfig();
     saveConfig(config);
     log.info(`Initialized config at ${path}`);
@@ -65,7 +82,13 @@ program
   .option('--name <name>', 'name to greet', 'World')
   .action((options) => {
     const config = loadConfig();
-    if (program.opts().debug || config.logLevel === 'DEBUG') {
+    // Allow config to override default level if not specified on CLI
+    if (
+      !program.opts().debug &&
+      !program.opts().verbose &&
+      !program.opts().quiet &&
+      config.logLevel === 'DEBUG'
+    ) {
       setLogLevel(LogLevel.DEBUG);
     }
 
@@ -75,7 +98,18 @@ program
     console.log(`Data directory: ${chalk.cyan(config.dataDir)}`);
   });
 
-program.parse(process.argv);
+// Global error handling and signal handling
+process.on('SIGINT', () => {
+  console.log(`\n${chalk.yellow('Interrupted by user')}`);
+  process.exit(0);
+});
+
+try {
+  program.parse(process.argv);
+} catch (err) {
+  log.error(err instanceof Error ? err.message : String(err));
+  process.exit(1);
+}
 
 if (!process.argv.slice(2).length) {
   program.outputHelp();

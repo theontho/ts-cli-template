@@ -24,7 +24,7 @@ jobs:
         run: bun install
 
       - name: Check Formatting & Lint (Biome)
-        run: bun run check
+        run: bun run ci:check
 
       - name: Run Tests (Bun)
         if: always()
