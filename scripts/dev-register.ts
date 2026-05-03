@@ -2,13 +2,80 @@ import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import chalk from 'chalk';
 
+export type Identity = {
+  source: string;
+  name: string;
+  email: string;
+  login?: string;
+  active?: boolean;
+};
+
+type GhAccount = {
+  login: string;
+  active: boolean;
+};
+
 function getGitConfig(key: string): string {
   const proc = spawnSync('git', ['config', key], { encoding: 'utf8' });
   return proc.status === 0 ? proc.stdout.trim() : '';
 }
 
-function getGhIdentities() {
-  const identities: Array<{ source: string; name: string; email: string; login: string }> = [];
+export function parseGhAuthStatus(output: string): GhAccount[] {
+  const accounts: GhAccount[] = [];
+  let current: GhAccount | undefined;
+
+  for (const line of output.split(/\r?\n/)) {
+    const login = line.match(/Logged in to github\.com account ([^\s(]+)/)?.[1];
+    if (login) {
+      current = { login, active: false };
+      accounts.push(current);
+      continue;
+    }
+
+    const active = line.match(/Active account:\s*(true|false)/)?.[1];
+    if (current && active) current.active = active === 'true';
+  }
+
+  return accounts;
+}
+
+function getGitIdentity(): Identity | null {
+  const gitName = getGitConfig('user.name');
+  const gitEmail = getGitConfig('user.email');
+  if (!gitName || !gitEmail) return null;
+
+  return {
+    source: 'Local Git Config',
+    name: gitName,
+    email: gitEmail,
+  };
+}
+
+function getJsonFromGh(args: string[]): Record<string, unknown> | null {
+  const proc = spawnSync('gh', ['api', ...args], { encoding: 'utf8' });
+  if (proc.status !== 0) return null;
+
+  try {
+    return JSON.parse(proc.stdout) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function getString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function buildGhEmail(userInfo: Record<string, unknown>, login: string): string {
+  const publicEmail = getString(userInfo.email);
+  if (publicEmail) return publicEmail;
+
+  const id = typeof userInfo.id === 'number' ? userInfo.id : null;
+  return id ? `${id}+${login}@users.noreply.github.com` : `${login}@users.noreply.github.com`;
+}
+
+function getGhIdentities(): Identity[] {
+  const identities: Identity[] = [];
   try {
     const versionProc = spawnSync('gh', ['--version'], { encoding: 'utf8' });
     if (versionProc.status !== 0) return identities;
@@ -17,33 +84,39 @@ function getGhIdentities() {
       encoding: 'utf8',
     });
     const output = statusProc.stdout + statusProc.stderr;
+    const accounts = parseGhAuthStatus(output);
+    const activeUser = getJsonFromGh(['user']);
+    const activeLogin =
+      getString(activeUser?.login) ?? accounts.find((account) => account.active)?.login;
 
-    const regex = /Logged in to .+ account ([^\s(]+)/g;
     const usernames = new Set<string>();
-
-    let match = regex.exec(output);
-    while (match !== null) {
-      usernames.add(match[1]);
-      match = regex.exec(output);
+    if (activeLogin) usernames.add(activeLogin);
+    for (const account of accounts) {
+      usernames.add(account.login);
     }
 
     for (const username of usernames) {
       try {
-        const apiProc = spawnSync('gh', ['api', `users/${username}`], { encoding: 'utf8' });
-        if (apiProc.status === 0) {
-          const userInfo = JSON.parse(apiProc.stdout);
+        const userInfo =
+          username === activeLogin && activeUser
+            ? activeUser
+            : getJsonFromGh([`users/${username}`]);
+        if (userInfo) {
+          const login = getString(userInfo.login) ?? username;
           identities.push({
-            source: `GitHub (account: ${username})`,
-            name: userInfo.name || userInfo.login,
-            email: userInfo.email || `${userInfo.login}@users.noreply.github.com`,
-            login: userInfo.login,
+            source: `GitHub${username === activeLogin ? ' active' : ''} account (${username})`,
+            name: getString(userInfo.name) ?? login,
+            email: buildGhEmail(userInfo, login),
+            login,
+            active: username === activeLogin,
           });
         } else {
           identities.push({
-            source: `GitHub (account: ${username} - details unavailable)`,
+            source: `GitHub${username === activeLogin ? ' active' : ''} account (${username} - details unavailable)`,
             name: username,
             email: `${username}@users.noreply.github.com`,
             login: username,
+            active: username === activeLogin,
           });
         }
       } catch {
@@ -56,21 +129,55 @@ function getGhIdentities() {
   return identities;
 }
 
-async function register() {
-  const allIdentities: Array<{ source: string; name: string; email: string }> = [];
+function identityKey(identity: Identity): string {
+  return `${identity.name}\0${identity.email}`;
+}
 
-  const gitName = getGitConfig('user.name');
-  const gitEmail = getGitConfig('user.email');
-  if (gitName || gitEmail) {
-    allIdentities.push({
-      source: 'Local Git Config',
-      name: gitName,
-      email: gitEmail,
-    });
+function gitIdentityMatchesGh(gitIdentity: Identity, ghIdentity: Identity): boolean {
+  if (!ghIdentity.login) return false;
+  return gitIdentity.email.toLowerCase().includes(ghIdentity.login.toLowerCase());
+}
+
+export function orderIdentities(
+  gitIdentity: Identity | null,
+  ghIdentities: Identity[],
+): Identity[] {
+  const ordered: Identity[] = [];
+  const seen = new Set<string>();
+  const add = (identity: Identity) => {
+    const key = identityKey(identity);
+    if (seen.has(key)) return;
+    seen.add(key);
+    ordered.push(identity);
+  };
+
+  const activeGh = ghIdentities.find((identity) => identity.active);
+  if (activeGh) {
+    if (gitIdentity && activeGh.login && gitIdentityMatchesGh(gitIdentity, activeGh)) {
+      add({
+        ...gitIdentity,
+        source: `GitHub active account (${activeGh.login}) via Local Git Config`,
+        login: activeGh.login,
+        active: true,
+      });
+    } else {
+      add(activeGh);
+    }
   }
 
+  for (const identity of ghIdentities) {
+    add(identity);
+  }
+
+  if (gitIdentity) add(gitIdentity);
+
+  return ordered;
+}
+
+async function register() {
+  const gitIdentity = getGitIdentity();
   const ghIdentities = getGhIdentities();
-  allIdentities.push(...ghIdentities);
+  const allIdentities = orderIdentities(gitIdentity, ghIdentities);
 
   if (allIdentities.length === 0) {
     console.error(
@@ -81,9 +188,21 @@ async function register() {
 
   console.log('Available Identities:');
   for (let i = 0; i < allIdentities.length; i++) {
-    console.log(
-      `${i + 1}) ${allIdentities[i].source}: ${allIdentities[i].name} <${allIdentities[i].email}>`,
-    );
+    const identity = allIdentities[i];
+    if (!identity) continue;
+    console.log(`${i + 1}) ${identity.source}: ${identity.name} <${identity.email}>`);
+  }
+
+  if (!process.stdin.isTTY) {
+    const selected = allIdentities[0];
+    if (!selected) {
+      console.error(chalk.red('No identity available to register.'));
+      process.exit(1);
+    }
+
+    writeFileSync('.dev_id', `name=${selected.name}\nemail=${selected.email}\n`);
+    console.log(chalk.green(`✅ Registered in .dev_id using ${selected.source}`));
+    return;
   }
 
   process.stdout.write(
@@ -100,6 +219,10 @@ async function register() {
     }
 
     const selected = allIdentities[choice - 1];
+    if (!selected) {
+      console.error(chalk.red('Invalid choice.'));
+      process.exit(1);
+    }
     const content = `name=${selected.name}\nemail=${selected.email}\n`;
     writeFileSync('.dev_id', content);
     console.log(chalk.green(`✅ Registered in .dev_id using ${selected.source}`));
@@ -107,4 +230,6 @@ async function register() {
   }
 }
 
-register();
+if (import.meta.main) {
+  await register();
+}

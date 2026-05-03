@@ -1,0 +1,15 @@
+pre-commit:
+  jobs:
+    - name: verify-dev
+      run: bun scripts/verify-dev.ts
+    - name: check
+      run: bun run check
+
+pre-push:
+  jobs:
+    - name: verify-dev
+      run: bun scripts/verify-dev.ts
+    - name: typecheck
+      run: bun run typecheck
+    - name: test
+      run: bun test

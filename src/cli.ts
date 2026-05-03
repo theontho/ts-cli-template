@@ -5,10 +5,29 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 // Bun has built-in support for importing JSON
 import packageJson from '../package.json';
-import { getConfigPath, loadConfig, saveConfig } from './config.js';
+import { type Config, defaultConfig, getConfigPath, loadConfig, saveConfig } from './config.js';
 import { LogLevel, log, setLogLevel, setUseEmoji } from './logging.js';
 
 const program = new Command();
+
+function getGlobalOptions() {
+  return program.opts<{ debug?: boolean; verbose?: boolean; quiet?: boolean; emoji?: boolean }>();
+}
+
+function isQuiet(): boolean {
+  return getGlobalOptions().quiet === true;
+}
+
+function output(message: string): void {
+  if (!isQuiet()) console.log(message);
+}
+
+function redactConfig(config: Config): Config {
+  return {
+    ...config,
+    apiKey: config.apiKey ? '<redacted>' : undefined,
+  };
+}
 
 program
   .name('ts-cli-template')
@@ -21,7 +40,17 @@ program
   .option('--quiet', 'suppress all output except errors')
   .option('--no-emoji', 'disable emoji in output')
   .hook('preAction', (thisCommand) => {
-    const opts = thisCommand.opts();
+    const opts = thisCommand.opts<{
+      debug?: boolean;
+      verbose?: boolean;
+      quiet?: boolean;
+      emoji?: boolean;
+    }>();
+    const verbosityFlags = [opts.debug, opts.verbose, opts.quiet].filter(Boolean);
+    if (verbosityFlags.length > 1) {
+      throw new Error('Choose only one of --debug, --verbose, or --quiet');
+    }
+
     if (opts.debug) setLogLevel(LogLevel.DEBUG);
     else if (opts.verbose) setLogLevel(LogLevel.INFO);
     else if (opts.quiet) setLogLevel(LogLevel.ERROR);
@@ -33,7 +62,7 @@ program
   .command('precheck')
   .description('Check environment and dependencies')
   .action(() => {
-    console.log(chalk.blue('Running Pre-check...'));
+    output(chalk.blue('Running Pre-check...'));
     let allPassed = true;
 
     if (!process.versions.bun) {
@@ -44,9 +73,9 @@ program
     }
 
     if (allPassed) {
-      console.log(chalk.green('Pre-check passed!'));
+      output(chalk.green('Pre-check passed!'));
     } else {
-      console.log(chalk.red('Pre-check failed!'));
+      console.error(chalk.red('Pre-check failed!'));
       process.exit(1);
     }
   });
@@ -58,8 +87,8 @@ configCmd
   .description('Show current configuration')
   .action(() => {
     const config = loadConfig();
-    console.log(chalk.blue(`Configuration (${getConfigPath()}):`));
-    console.table(config);
+    output(chalk.blue(`Configuration (${getConfigPath()}):`));
+    if (!isQuiet()) console.table(redactConfig(config));
   });
 
 configCmd
@@ -72,7 +101,7 @@ configCmd
       log.warn(`Config already exists at ${path}. Use --force to overwrite.`);
       return;
     }
-    const config = loadConfig();
+    const config = defaultConfig();
     saveConfig(config);
     log.info(`Initialized config at ${path}`);
   });
@@ -90,13 +119,13 @@ program
 
     log.debug('Debug logging is enabled');
     log.info('Starting ts-cli-template...');
-    console.log(chalk.green(`Hello, ${options.name} from Bun!`));
-    console.log(`Data directory: ${chalk.cyan(config.dataDir)}`);
+    output(chalk.green(`Hello, ${options.name} from Bun!`));
+    output(`Data directory: ${chalk.cyan(config.dataDir)}`);
   });
 
 // Global error handling and signal handling
 process.on('SIGINT', () => {
-  console.log(`\n${chalk.yellow('Interrupted by user')}`);
+  console.error(`\n${chalk.yellow('Interrupted by user')}`);
   process.exit(130);
 });
 
