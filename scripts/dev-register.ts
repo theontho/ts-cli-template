@@ -7,75 +7,93 @@ function getGitConfig(key: string): string {
   return proc.status === 0 ? proc.stdout.trim() : '';
 }
 
-function getGhIdentity() {
+function getGhIdentities() {
+  const identities: Array<{ source: string; name: string; email: string; login: string }> = [];
   try {
     const versionProc = spawnSync('gh', ['--version'], { encoding: 'utf8' });
-    if (versionProc.status !== 0) return null;
+    if (versionProc.status !== 0) return identities;
 
-    const apiProc = spawnSync('gh', ['api', 'user'], { encoding: 'utf8' });
-    if (apiProc.status !== 0) return null;
+    const statusProc = spawnSync('gh', ['auth', 'status'], { encoding: 'utf8' });
+    const output = statusProc.stdout + statusProc.stderr;
+    
+    const regex = /Logged in to .+ account ([^\s\(]+)/g;
+    let match;
+    const usernames = new Set<string>();
+    
+    while ((match = regex.exec(output)) !== null) {
+      usernames.add(match[1]);
+    }
 
-    const userInfo = JSON.parse(apiProc.stdout);
-    return {
-      name: userInfo.name || userInfo.login,
-      email: userInfo.email || `${userInfo.login}@users.noreply.github.com`,
-      login: userInfo.login
-    };
+    for (const username of usernames) {
+      try {
+        const apiProc = spawnSync('gh', ['api', 'users/' + username], { encoding: 'utf8' });
+        if (apiProc.status === 0) {
+          const userInfo = JSON.parse(apiProc.stdout);
+          identities.push({
+            source: 'GitHub (account: ' + username + ')',
+            name: userInfo.name || userInfo.login,
+            email: userInfo.email || userInfo.login + '@users.noreply.github.com',
+            login: userInfo.login
+          });
+        } else {
+           identities.push({
+            source: 'GitHub (account: ' + username + ' - details unavailable)',
+            name: username,
+            email: username + '@users.noreply.github.com',
+            login: username
+          });
+        }
+      } catch {
+        // Fallback
+      }
+    }
   } catch {
-    return null;
+    // Ignore errors
   }
+  return identities;
 }
 
 async function register() {
-  const identities: Array<{ source: string; name: string; email: string }> = [];
+  const allIdentities: Array<{ source: string; name: string; email: string }> = [];
 
-  // Local Git Identity
   const gitName = getGitConfig('user.name');
   const gitEmail = getGitConfig('user.email');
   if (gitName || gitEmail) {
-    identities.push({
+    allIdentities.push({
       source: 'Local Git Config',
       name: gitName,
       email: gitEmail
     });
   }
 
-  // GitHub Identity
-  const ghId = getGhIdentity();
-  if (ghId) {
-    identities.push({
-      source: `GitHub (via gh CLI: ${ghId.login})`,
-      name: ghId.name,
-      email: ghId.email
-    });
-  }
+  const ghIdentities = getGhIdentities();
+  allIdentities.push(...ghIdentities);
 
-  if (identities.length === 0) {
+  if (allIdentities.length === 0) {
     console.error(chalk.red('❌ No git or GitHub identity found. Please configure git or login to gh.'));
     process.exit(1);
   }
 
   console.log('Available Identities:');
-  for (let i = 0; i < identities.length; i++) {
-    console.log(`${i + 1}) ${identities[i].source}: ${identities[i].name} <${identities[i].email}>`);
+  for (let i = 0; i < allIdentities.length; i++) {
+    console.log((i + 1) + ') ' + allIdentities[i].source + ': ' + allIdentities[i].name + ' <' + allIdentities[i].email + '>');
   }
 
-  process.stdout.write(chalk.blue(`Choose an identity to register in .dev_id (1-${identities.length}) [1]: `));
+  process.stdout.write(chalk.blue('Choose an identity to register in .dev_id (1-' + allIdentities.length + ') [1]: '));
   
-  // Use Bun.stdin for input
-  for await (const line of Bun.stdin.stream()) {
+  for await (const line of (Bun.stdin as any).stream()) {
     const input = Buffer.from(line).toString().trim() || '1';
     const choice = parseInt(input, 10);
     
-    if (isNaN(choice) || choice < 1 || choice > identities.length) {
+    if (isNaN(choice) || choice < 1 || choice > allIdentities.length) {
       console.error(chalk.red('Invalid choice.'));
       process.exit(1);
     }
 
-    const selected = identities[choice - 1];
-    const content = `name=${selected.name}\nemail=${selected.email}\n`;
+    const selected = allIdentities[choice - 1];
+    const content = 'name=' + selected.name + '\nemail=' + selected.email + '\n';
     writeFileSync('.dev_id', content);
-    console.log(chalk.green(`✅ Registered in .dev_id using ${selected.source}`));
+    console.log(chalk.green('✅ Registered in .dev_id using ' + selected.source));
     process.exit(0);
   }
 }
