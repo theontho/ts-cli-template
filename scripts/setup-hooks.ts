@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync, chmodSync, statSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import chalk from 'chalk';
 
@@ -22,7 +22,7 @@ bun scripts/verify-dev.ts
   for (const hookName of ['pre-commit', 'pre-push']) {
     const hookPath = join(hooksDir, hookName);
     writeFileSync(hookPath, hookContent);
-    
+
     // Make executable
     chmodSync(hookPath, 0o755);
     console.log(chalk.green(`✅ Installed ${hookName} hook`));

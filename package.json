@@ -13,7 +13,8 @@
     "test": "bun test",
     "lint": "biome lint .",
     "format": "biome format --write .",
-    "check": "biome check --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "build": "bun build ./src/cli.ts --compile --outfile dist/ts-cli-template",
     "dev-register": "bun scripts/dev-register.ts",
     "setup-hooks": "bun scripts/setup-hooks.ts"

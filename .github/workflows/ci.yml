@@ -27,4 +27,5 @@ jobs:
         run: bun run check
 
       - name: Run Tests (Bun)
+        if: always()
         run: bun test
