@@ -28,8 +28,8 @@ A best-practice TypeScript CLI project template powered by [Bun](https://bun.sh/
     ```
 5.  **Setup Development Environment:**
     ```bash
-    bun run setup-hooks    # Install git hooks
     bun run dev-register   # Register your git identity
+    bun run setup-hooks    # Install Lefthook git hooks
     ```
 6.  **Run the application:**
     ```bash
@@ -42,14 +42,24 @@ A best-practice TypeScript CLI project template powered by [Bun](https://bun.sh/
 
 ## Configuration
 
-Configuration is stored in `~/.config/ts-cli-template/config.json` (on macOS/Linux).
+Configuration is stored in platform-standard locations via `platformdirs`:
+
+- macOS: `~/Library/Application Support/ts-cli-template/config.json`
+- Linux: `~/.config/ts-cli-template/config.json`
+- Windows: `%APPDATA%\ts-cli-template\config.json`
+
+For tests or isolated runs, set `TS_CLI_TEMPLATE_CONFIG_DIR` to override the config directory.
 
 ## Development
 
 - **Linting:** `bun run lint`
 - **Formatting:** `bun run format`
-- **Check (Lint + Format + Fix):** `bun run check`
-- **Type Checking:** Handled natively by Bun's runtime and test runner.
+- **Check (Lint + Format Validation):** `bun run check`
+- **Check and Fix:** `bun run check:fix`
+- **Type Checking:** `bun run typecheck`
+- **Git Hooks:** `bun run setup-hooks` installs hooks from `lefthook.yml`
+
+Lefthook verifies your registered Git identity and runs `bun run check` before commits. Before pushes it verifies identity, runs `bun run typecheck`, and runs `bun test`.
 
 ## Build
 

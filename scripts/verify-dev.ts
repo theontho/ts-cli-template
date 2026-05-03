@@ -13,7 +13,7 @@ function verify() {
   const devIdPath = '.dev_id';
   if (!existsSync(devIdPath)) {
     console.error('❌ Error: .dev_id file not found!');
-    console.error("Please run 'ts-cli-template dev-register' to set up your identity.");
+    console.error("Please run 'bun run dev-register' to set up your identity.");
     process.exit(1);
   }
 
