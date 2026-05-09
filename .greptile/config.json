@@ -1,0 +1,17 @@
+{
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax"],
+  "triggerOnUpdates": true,
+  "updateExistingSummaryComment": true,
+  "includeBranches": ["main"],
+  "ignorePatterns": "node_modules/**\ndist/**\nbuild/**\n.next/**\nout/**\ntmp/**\nscratch/**\nbun.lock\npackage-lock.json\npnpm-lock.yaml\nyarn.lock\n**/*.lock",
+  "summarySection": {"included": true, "collapsible": true, "defaultOpen": false},
+  "issuesTableSection": {"included": true, "collapsible": true, "defaultOpen": true},
+  "instructions": "Greenfield TypeScript/Bun project. Skip style/formatting nits (handled by Biome). Focus on correctness, security, and maintainability. Do NOT suggest backward-compatibility shims.",
+  "rules": [
+    {"id": "no-any", "scope": ["src/**/*.{ts,tsx}", "scripts/**/*.{ts,tsx}"], "rule": "Avoid `any`. Use `unknown` + type narrowing for untyped boundaries.", "severity": 2, "enabled": true},
+    {"id": "redact-secrets", "scope": ["src/**/*.{ts,tsx}", "scripts/**/*.{ts,tsx}"], "rule": "Configuration display, logs, and error messages must redact keys, tokens, and credentials.", "severity": 1, "enabled": true},
+    {"id": "no-backcompat", "scope": ["**/*"], "rule": "Greenfield project. Reject suggestions to add backward-compatibility shims, legacy code paths, or deprecation warnings.", "severity": 2, "enabled": true},
+    {"id": "explicit-errors", "scope": ["src/**/*.{ts,tsx}"], "rule": "Avoid swallowed catches. Errors should be logged or rethrown with context, not silently ignored.", "severity": 2, "enabled": true}
+  ]
+}
